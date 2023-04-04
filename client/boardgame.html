@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <link rel="icon"
+              type="image/gif"
+              href="favicon.gif">
+        <link rel="stylesheet" href="assets/css/reset.css"/>
+        <link rel="stylesheet" href="assets/css/screen.css"/>
+        <link rel="stylesheet" href="assets/css/hover-state.css"/>
+        <title>18 - Stratego</title>
+    </head>
+    <body>
+        <header>
+            <h1>Stratego</h1>
+            <div class="achievement" id="warCryAchievement"><img src="assets/media/achievements/trophy.png" alt="No life">No life</div>
+            <div class="achievement" id="nice"><img src="assets/media/achievements/trophy.png" alt="Nice">Nice</div>
+            <div class="achievement" id="noLife2"><img src="assets/media/achievements/trophy.png" alt="No life2">No life 2</div>
+            <form>
+                <input type="text" id="roomid" name="roomid" placeholder="Room ID">
+                <input id="start" type="button" value="Start game">
+            </form>
+            <div>
+                <input id="end" hidden type="button" value="Surrender">
+                <select hidden id="infiltratorSelect"></select>
+                <input id="warCry" hidden type="button" value="War Cry">
+            </div>
+            <p id="showTurn">Configure your board</p>
+            <p id="errors"></p>
+        </header>
+        <aside id="leftSide">
+            <div id="friendlyTaken">
+                <div id="takenFriendlyTitel">
+                    <p>Friendly Pawns Taken</p>
+                </div>
+                <div id="takenFriendlyPawns">
+
+                </div>
+            </div>
+        </aside>
+        <main>
+            <div id="board">
+                
+            </div>
+        </main>
+        <aside id="rightSide">
+            <div id="enemyTaken">
+                <div id="takenEnemyTitel">
+                    <p>Enemy Pawns Taken</p>
+                </div>
+                <div id="takenEnemyPawns">
+
+                </div>
+            </div>
+        </aside>
+        <footer id="pawn-footer">
+
+        </footer>
+        <script src="assets/js/api-communication.js"></script>
+        <script src="assets/js/config.js"></script>
+        <script src="assets/js/boardgame.js"></script>
+        <script src="assets/js/boardconfig.js"></script>
+        <script src="assets/js/pionnen.js"></script>
+        <script src="assets/js/infiltrator.js"></script>
+        <script src="assets/js/achievements.js"></script>
+        <script src="assets/js/easterEggs.js"></script>
+    </body>
+</html>

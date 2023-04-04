@@ -1,0 +1,73 @@
+.pawn span{
+    visibility: hidden;
+    position:absolute;
+    background-color: black;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    top: 85%;
+    width:80px;
+    margin-left:-40px;
+    user-select: none;
+}
+
+.pawn:hover .flag{
+    visibility: visible;
+}
+
+.pawn:hover .bomb{
+    visibility: visible;
+}
+
+.pawn:hover .spy{
+    visibility: visible;
+}
+
+.pawn:hover .infiltrator{
+    visibility: visible;
+}
+
+.pawn:hover .scout{
+    visibility: visible;
+}
+
+.pawn:hover .miner{
+    visibility: visible;
+}
+
+.pawn:hover .sergeant{
+    visibility: visible;
+}
+
+.pawn:hover .lieutenant{
+    visibility: visible;
+}
+
+.pawn:hover .captain{
+    visibility: visible;
+}
+
+.pawn:hover .general{
+    visibility: visible;
+}
+
+.pawn:hover .marshal{
+    visibility: visible;
+}
+
+.pawn:hover .major{
+    visibility: visible;
+}
+
+.pawn:hover .colonel{
+    visibility: visible;
+}
+
+/* -- HOW TO USE -- 
+ <div class ="pawn">
+   <span class="{name of pawn}">Hier typ je de info over de pion</span>
+ </div>
+
+
+ vanaf je over een pawn hovert word de tooltip van die pawn getoont
+*/
