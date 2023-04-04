@@ -1,0 +1,419 @@
+openapi: 3.0.3
+info:
+  title: Stratego
+  description: This is a stratego server.
+  version: 1.0.0
+servers:
+  - url: 'https://project-i.ti.howest.be/stratego-00/api'
+  - url: 'http://127.0.0.1:8080'
+tags:
+  - name: Stratego information
+  - name: Join and play games
+
+paths:
+  /demo/{filter}:
+    get:
+      operationId: getDemo
+      parameters:
+        - name: filter
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          description: OK
+  /demo:
+    post:
+      operationId: postDemo
+      security:
+        - player_auth: [ ]
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+      responses:
+        200:
+          description: OK
+  /versions:
+    get:
+      operationId: getStrategoVersions
+      summary: Get all available game versions
+      tags:
+        - Stratego information
+      responses:
+        200:
+          $ref: '#/components/responses/StrategoVersions'
+
+  /versions/{version}:
+    get:
+      operationId: getStrategoVersion
+      summary: Get valid pawn types for specific game version
+      tags:
+        - Stratego information
+      parameters:
+        - name: version
+          in: path
+          description: name of the stratego version - needs to match a value from GET /versions
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          $ref: '#/components/responses/StrategoVersion'
+        404:
+          $ref: '#/components/responses/VersionNotFound'
+
+
+  /games/rooms/{roomId}/configuration:
+    post:
+      operationId: joinGame
+      summary: Join a game with a given board setup
+      tags:
+        - Join and play games
+      parameters:
+        - $ref: '#/components/parameters/roomIdInPath'
+      requestBody:
+        required: true
+        description: "Below is an example of the possible body for this call. Ensure that the amount of rows / cols matches the grid you are playing. An example of 10 x 10 was used here. We are using the mini game version, which is a testing version allowing a single marshal and flag. Empty fields are described with null"
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                version:
+                  type: string
+                startConfiguration:
+                  $ref: '#/components/schemas/startConfiguration'
+              required:
+                - version
+                - startConfiguration
+              example:
+                version: tiny
+                startConfiguration:
+                  [
+                    [ null,null,null,null,null,null,null,null,null,null ],[ null,null,null,null,null,null,null,null,null,null ],[ null,null,null,null,null,null,null,null,null,null ],[ null,null,null,null,null,null,null,null,null,null ],[ null,null,null,null,null,null,null,null,null,null ],[ null,null,null,null,null,null,null,null,null,null ],[ null,null,null,null,null,null,null,null,null,null ],[ null,null,null,"marshal",null,null,null,null,null,null ],[ null,null,"flag",null,null,null,null,null,null,null ],[ null,null,null,null,null,null,null,null,null,null ]
+                  ]
+      responses:
+        200:
+          $ref: '#/components/responses/StartConfigurationSet'
+        201:
+          $ref: '#/components/responses/StartConfigurationSet'
+        409:
+          $ref: '#/components/responses/GameRuleViolation'
+  /games/{gameId}/configuration:
+    get:
+      operationId: getGameState
+      summary: Get the current state of the board
+      tags:
+        - Join and play games
+      parameters:
+        - $ref: '#/components/parameters/gameIdInPath'
+      security:
+        - player_auth: [ ]
+      responses:
+        200:
+          $ref: '#/components/responses/GameState'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/GameDoesNotExist'
+
+  /games/{gameId}/moves:
+    get:
+      operationId: getMoves
+      summary: Get the full moves list
+      tags:
+        - Join and play games
+      parameters:
+        - $ref: '#/components/parameters/gameIdInPath'
+      security:
+        - player_auth: [ ]
+      responses:
+        200:
+          $ref: '#/components/responses/Moves'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/GameDoesNotExist'
+    post:
+      operationId: makeMove
+      summary: Execute a move
+      tags:
+        - Join and play games
+      parameters:
+        - $ref: '#/components/parameters/gameIdInPath'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/moveRequest'
+      security:
+        - player_auth: [ ]
+      responses:
+        200:
+          $ref: '#/components/responses/MoveMade'
+        401:
+          $ref: '#/components/responses/Unauthorized'
+        403:
+          $ref: '#/components/responses/Forbidden'
+        404:
+          $ref: '#/components/responses/GameDoesNotExist'
+        409:
+          $ref: '#/components/responses/GameRuleViolation'
+
+components:
+  schemas:
+    location:
+      type: object
+      properties:
+        row:
+          type: integer
+          minimum: 0
+        col:
+          type: integer
+          minimum: 0
+      required:
+        - row
+        - col
+    piece:
+      type: object
+      properties:
+        player:
+          type: string
+        rank:
+          type: string
+      required:
+        - player
+    configuration:
+      type: array
+      items:
+        type: array
+        items:
+          $ref: '#/components/schemas/piece'
+    startConfiguration:
+      type: array
+      items:
+        type: array
+        items:
+          type: string
+          nullable: true
+          description: rank of a piece
+    moveRequest:
+      type: object
+      properties:
+        src:
+          $ref: '#/components/schemas/location'
+        tar:
+          $ref: '#/components/schemas/location'
+        infiltrate:
+          type: string
+      required:
+        - src
+        - tar
+    move:
+      type: object
+      properties:
+        player:
+          type: string
+        src:
+          $ref: '#/components/schemas/location'
+        tar:
+          $ref: '#/components/schemas/location'
+        attack:
+          $ref: '#/components/schemas/attack'
+      required:
+        - player
+        - src
+        - tar
+    attack:
+      type: object
+      properties:
+        attacker:
+          type: string
+        defender:
+          type: string
+        winner:
+          type: string
+          enum: [ attacker, defender, draw ]
+      required:
+        - attacker
+        - defender
+        - outcome
+
+  securitySchemes:
+    player_auth:
+      type: http
+      scheme: bearer
+  responses:
+    GameRuleViolation:
+      description: this request is not allowed because it violates a game rule
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              failure:
+                type: integer
+                default: 409
+              cause:
+                type: string
+            required:
+              - failure
+              - cause
+    StrategoVersions:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              versions:
+                type: array
+                items:
+                  type: string
+    StrategoVersion:
+      description: successful operation
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+              pieceCount:
+                type: object
+                additionalProperties:
+                  type: integer
+            required:
+              - pieceCount
+              - name
+    GameState:
+      description: Successful operation. Careful, the rank will be absent for the opponent's pawns
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              configuration:
+                $ref: '#/components/schemas/configuration'
+    StartConfigurationSet:
+      description: successful operation (in case of 201, successful operation after joining existing game)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              gameId:
+                type: string
+              player:
+                type: string
+              playerToken:
+                type: string
+            required:
+              - gameId
+              - playerToken
+    MoveMade:
+      description: Successful operation. Careful, attack object is optional. It is only present if the move resulted in two pawns colliding.
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              move:
+                $ref: '#/components/schemas/move'
+            required:
+              - move
+          examples: # Child of media type
+            move: # Example move
+              value:
+                player: RED
+                src:
+                  row: 0
+                  col: 0
+                tar:
+                  row: 0
+                  col: 0
+            attack: # Example attack
+              value:
+                player: RED
+                src:
+                  row: 0
+                  col: 0
+                tar:
+                  row: 0
+                  col: 0
+                attack:
+                  attacker: captain
+                  defender: bomb
+                  winner: attacker
+            infiltrateSuccess: # Example infiltrate success
+              value:
+                player: RED
+                src:
+                  row: 0
+                  col: 0
+                tar:
+                  row: 0
+                  col: 0
+                infiltration:
+                  expected: captain
+                  actual: captain
+                  successful: true
+            infiltrateFailure: # Example infiltrate failure
+              value:
+                player: RED
+                src:
+                  row: 0
+                  col: 0
+                tar:
+                  row: 0
+                  col: 0
+                infiltration:
+                  expected: captain
+                  actual: marshal
+                  successful: false
+
+    Moves:
+      description: Successful operation. Careful, attack object is optional, so is infiltrate. They is only present under certain conditions. Change drop down for response examples
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              moves:
+                type: array
+                items:
+                  $ref: '#/components/schemas/move'
+            required:
+              - moves
+    VersionNotFound:
+      description: Not Found - version does not exist
+    GameDoesNotExist:
+      description: Not Found - game does not exist
+    Forbidden:
+      description: Forbidden - this request is not allowed with this player authentication
+    Unauthorized:
+      description: Unauthorized - this request requires player authentication
+
+  parameters:
+    roomIdInPath:
+      name: roomId
+      in: path
+      description: ID of the room - preferred format group-XX where XX is your group number
+      required: true
+      schema:
+        type: string
+    gameIdInPath:
+      name: gameId
+      in: path
+      description: ID of the game - returned in POST /games/rooms/{roomId}/configuration
+      required: true
+      schema:
+        type: string

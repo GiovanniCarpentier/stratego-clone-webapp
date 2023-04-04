@@ -1,0 +1,94 @@
+plugins {
+    id 'java'
+    id 'application'
+    id "com.github.johnrengelman.shadow" version "5.2.0"
+    id 'jacoco'
+    id "org.sonarqube" version "3.1.1"
+    id "de.undercouch.download" version "4.0.4"
+}
+
+def vertxVersion = '4.0.0'
+def junitVersion = "5.6.2"
+
+group 'be.howest.ti'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+java {
+    sourceCompatibility = JavaVersion.VERSION_11
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+test {
+    println "Start test task"
+    def config = System.getProperty('config')
+    if (config == null) {
+        println "Set default config for test: local"
+        config = "local"
+    } else {
+        println "Using supplied config for test:" + config
+    }
+    systemProperty 'be.howest.ti.stratego2021.config', config
+
+    useJUnitPlatform()
+
+    testLogging {
+        events "passed", "skipped", "failed"
+    }
+}
+
+dependencies {
+    implementation 'org.jetbrains:annotations:20.1.0'
+
+    testImplementation "org.junit.jupiter:junit-jupiter-api:$junitVersion"
+    testRuntimeOnly "org.junit.jupiter:junit-jupiter-engine:$junitVersion"
+    testCompile "org.junit.jupiter:junit-jupiter-params:$junitVersion"
+
+    compile group: 'org.slf4j', name: 'slf4j-nop', version: '1.7.21'
+
+    testImplementation "io.vertx:vertx-junit5:$vertxVersion"
+    testImplementation "io.vertx:vertx-web-client:$vertxVersion"
+
+
+    compile "io.vertx:vertx-core:$vertxVersion"
+    compile "io.vertx:vertx-web:$vertxVersion"
+    compile "io.vertx:vertx-config:$vertxVersion"
+
+    compile "io.vertx:vertx-web-openapi:$vertxVersion"
+    compile "io.vertx:vertx-codegen:$vertxVersion"
+
+}
+
+mainClassName = 'io.vertx.core.Launcher'
+
+run {
+    systemProperty(
+            "vertx.logger-delegate-factory-class-name",
+            "io.vertx.core.logging.JULLogDelegateFactory"
+    )
+    args = ['run', "be.howest.ti.stratego2021.web.WebServer", "--launcher-class=$mainClassName",
+            "-Dvertx.logger-delegate-factory-class-name=io.vertx.core.logging.JULLogDelegateFactory"]
+}
+
+shadowJar {
+    archiveClassifier.set('fat')
+    manifest {
+        attributes 'Main-Verticle': "$mainVerticleName"
+    }
+    mergeServiceFiles {
+        include 'META-INF/services/io.vertx.core.spi.VerticleFactory'
+    }
+}
+
+/*
+ * Download the most recent spec and put it in the resource directory
+ */
+task installApiSpec(type: Download) {
+    src 'https://project-i.ti.howest.be/stratego-api-spec/stratego-spec.yaml'
+    dest 'stratego-api.yaml'
+    overwrite true
+}
+
